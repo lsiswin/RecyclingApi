@@ -227,26 +227,26 @@ namespace RecyclingApi.Application.DTOs.CaseDTOs
         /// <summary>
         /// 标题关键字
         /// </summary>
-        public string Keyword { get; set; }
+        public string? Keyword { get; set; }
 
         /// <summary>
         /// 案例分类
         /// </summary>
-        public string Category { get; set; }
+        public string? Category { get; set; }
 
         /// <summary>
         /// 设备类型
         /// </summary>
-        public string DeviceType { get; set; }
+        public string? DeviceType { get; set; }
 
         /// <summary>
         /// 回收规模
         /// </summary>
-        public string Scale { get; set; }
+        public string? Scale { get; set; }
 
         /// <summary>
         /// 是否启用
         /// </summary>
-        public bool? IsActive { get; set; }
+        public bool? IsActive { get; set; } = true;
     }
 } 

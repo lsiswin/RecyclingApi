@@ -43,80 +43,9 @@ namespace RecyclingApi.Web.Controllers
             var result = await _companyInfoService.UpdateCompanyInfoAsync(dto);
             return new ApiResponse<CompanyInfoDto>(result, "公司信息更新成功");
         }
-        #region 团队成员
+        
 
-        /// <summary>
-        /// 获取所有团队成员
-        /// </summary>
-        [HttpGet("team-members")]
-        public async Task<ApiResponse<List<TeamMemberDto>>> GetAllTeamMembers()
-        {
-            var teamMembers = await _companyInfoService.GetAllTeamMembersAsync();
-            return new ApiResponse<List<TeamMemberDto>>(teamMembers);
-        }
 
-        /// <summary>
-        /// 根据ID获取团队成员
-        /// </summary>
-        [HttpGet("team-members/{id}")]
-        public async Task<ApiResponse<TeamMemberDto>> GetTeamMemberById(int id)
-        {
-            var teamMember = await _companyInfoService.GetTeamMemberByIdAsync(id);
-            if (teamMember == null)
-                return new ApiResponse<TeamMemberDto>($"未找到ID为{id}的团队成员");
-
-            return new ApiResponse<TeamMemberDto>(teamMember);
-        }
-
-        /// <summary>
-        /// 创建团队成员
-        /// </summary>
-        [HttpPost("team-members")]
-        [Authorize(Roles = "admin")]
-        public async Task<ApiResponse<TeamMemberDto>> CreateTeamMember([FromBody] CreateUpdateTeamMemberDto input)
-        {
-            if (!ModelState.IsValid)
-                return new ApiResponse<TeamMemberDto>(ModelState.ToString());
-
-            var result = await _companyInfoService.CreateTeamMemberAsync(input);
-            return new ApiResponse<TeamMemberDto>(result);
-        }
-
-        /// <summary>
-        /// 更新团队成员
-        /// </summary>
-        [HttpPut("team-members/{id}")]
-        [Authorize(Roles = "admin")]
-        public async Task<ApiResponse<TeamMemberDto>> UpdateTeamMember(int id, [FromBody] CreateUpdateTeamMemberDto input)
-        {
-            if (!ModelState.IsValid)
-                return new ApiResponse<TeamMemberDto>(ModelState.ToString());
-
-            try
-            {
-                var result = await _companyInfoService.UpdateTeamMemberAsync(id, input);
-                return new ApiResponse<TeamMemberDto>(result);
-            }
-            catch (System.Exception ex)
-            {
-                return new ApiResponse<TeamMemberDto>(ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// 删除团队成员
-        /// </summary>
-        [HttpDelete("team-members/{id}")]
-        [Authorize(Roles = "admin")]
-        public async Task<ApiResponse<string>> DeleteTeamMember(int id)
-        {
-            var result = await _companyInfoService.DeleteTeamMemberAsync(id);
-            if (!result)
-                return new ApiResponse<string>($"未找到ID为{id}的团队成员");
-
-            return new ApiResponse<string>("删除成功");
-        }
-
-        #endregion
+        
     }
 } 

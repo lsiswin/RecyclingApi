@@ -5,7 +5,7 @@ using RecyclingApi.Application.DTOs.ProductDTOs;
 using RecyclingApi.Application.DTOs.CaseDTOs;
 using RecyclingApi.Domain.Enums;
 
-namespace RecyclingApi.Application.Services.Product;
+namespace RecyclingApi.Application.Services.Products;
 
 /// <summary>
 /// 产品服务接口
@@ -18,7 +18,7 @@ public interface IProductService
     /// </summary>
     /// <param name="requestDto">查询条件</param>
     /// <returns>产品分页结果</returns>
-    Task<PagedResult<ProductDto>> GetPagedListAsync(ProductRequestDto requestDto);
+    Task<PagedResponseDto<ProductDto>> GetPagedListAsync(ProductRequestDto requestDto);
 
     /// <summary>
     /// 根据ID获取产品

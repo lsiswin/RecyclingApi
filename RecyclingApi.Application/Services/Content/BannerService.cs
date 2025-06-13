@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using RecyclingApi.Application.DTOs;
 using RecyclingApi.Application.DTOs.ContentDTOs;
+using RecyclingApi.Application.Repositories;
 using RecyclingApi.Domain.Entities.Content;
-using RecyclingApi.Domain.Entities.Data;
 
 namespace RecyclingApi.Application.Services.Content
 {
@@ -15,11 +17,18 @@ namespace RecyclingApi.Application.Services.Content
     /// </summary>
     public class BannerService : IBannerService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public BannerService(ApplicationDbContext context)
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="unitOfWork">工作单元</param>
+        /// <param name="mapper">对象映射器</param>
+        public BannerService(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -27,58 +36,66 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<PagedResponseDto<BannerDto>> GetPagedListAsync(BannerRequestDto requestDto)
         {
-            // 构建查询
-            var query = _context.Banners.AsQueryable();
+            var repository = _unitOfWork.GetRepository<Banner>();
+            Expression<Func<Banner, bool>> predicate = null;
 
-            // 应用筛选条件
+            // 构建查询条件
             if (!string.IsNullOrWhiteSpace(requestDto.Keyword))
             {
-                query = query.Where(b => b.Title.Contains(requestDto.Keyword) || 
-                                        b.Description.Contains(requestDto.Keyword));
+                predicate = b => b.Title.Contains(requestDto.Keyword) || 
+                                b.Description.Contains(requestDto.Keyword);
             }
 
             if (requestDto.IsActive.HasValue)
             {
-                query = query.Where(b => b.IsActive == requestDto.IsActive.Value);
+                var isActive = requestDto.IsActive.Value;
+                predicate = predicate == null 
+                    ? b => b.IsActive == isActive
+                    : b => b.IsActive == isActive && predicate.Compile()(b);
             }
 
-            // 应用排序
-            query = requestDto.IsDesc 
-                ? query.OrderByDescending(GetSortProperty(requestDto.SortBy))
-                : query.OrderBy(GetSortProperty(requestDto.SortBy));
+            // 确定排序字段
+            Expression<Func<Banner, object>> orderBy = GetSortProperty(requestDto.SortBy);
 
-            // 获取总记录数
-            var totalCount = await query.CountAsync();
+            // 获取分页结果
+            var result = await repository.GetPagedListAsync(
+                requestDto.PageIndex,
+                requestDto.PageSize,
+                predicate,
+                orderBy,
+                requestDto.IsDesc);
 
-            // 应用分页
-            var items = await query
-                .Skip((requestDto.PageIndex - 1) * requestDto.PageSize)
-                .Take(requestDto.PageSize)
-                .Select(b => new BannerDto
-                {
-                    Id = b.Id,
-                    Title = b.Title,
-                    Description = b.Description,
-                    ImageUrl = b.ImageUrl,
-                    LinkUrl = b.LinkUrl,
-                    Sort = b.Sort,
-                    IsActive = b.IsActive,
-                    CreatedAt = b.CreatedAt
-                })
-                .ToListAsync();
+            // 转换为DTO
+            var dtoItems = _mapper.Map<List<BannerDto>>(result.Items);
 
-            // 计算总页数
-            var totalPages = (int)Math.Ceiling(totalCount / (double)requestDto.PageSize);
-
-            // 构建分页响应
             return new PagedResponseDto<BannerDto>
             {
-                PageIndex = requestDto.PageIndex,
-                PageSize = requestDto.PageSize,
-                TotalCount = totalCount,
-                TotalPages = totalPages,
-                Items = items
+                Items = dtoItems,
+                PageIndex = result.PageIndex,
+                PageSize = result.PageSize,
+                TotalCount = result.TotalCount,
+                TotalPages = result.TotalPages
             };
+        }
+
+        /// <summary>
+        /// 获取所有轮播图列表
+        /// </summary>
+        public async Task<List<BannerDto>> GetAllAsync()
+        {
+            var repository = _unitOfWork.GetRepository<Banner>();
+            var entities = await repository.GetAllAsync();
+            return _mapper.Map<List<BannerDto>>(entities);
+        }
+
+        /// <summary>
+        /// 获取所有激活的轮播图列表
+        /// </summary>
+        public async Task<List<BannerDto>> GetActiveAsync()
+        {
+            var repository = _unitOfWork.GetRepository<Banner>();
+            var entities = await repository.GetAsync(b => b.IsActive);
+            return _mapper.Map<List<BannerDto>>(entities);
         }
 
         /// <summary>
@@ -86,21 +103,13 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<BannerDto> GetByIdAsync(int id)
         {
-            var banner = await _context.Banners.FindAsync(id);
-            if (banner == null)
+            var repository = _unitOfWork.GetRepository<Banner>();
+            var entity = await repository.GetByIdAsync(id);
+            
+            if (entity == null)
                 return null;
 
-            return new BannerDto
-            {
-                Id = banner.Id,
-                Title = banner.Title,
-                Description = banner.Description,
-                ImageUrl = banner.ImageUrl,
-                LinkUrl = banner.LinkUrl,
-                Sort = banner.Sort,
-                IsActive = banner.IsActive,
-                CreatedAt = banner.CreatedAt
-            };
+            return _mapper.Map<BannerDto>(entity);
         }
 
         /// <summary>
@@ -108,31 +117,14 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<BannerDto> CreateAsync(CreateUpdateBannerDto input)
         {
-            var banner = new Banner
-            {
-                Title = input.Title,
-                Description = input.Description,
-                ImageUrl = input.ImageUrl,
-                LinkUrl = input.LinkUrl,
-                Sort = input.Sort,
-                IsActive = input.IsActive,
-                CreatedAt = DateTime.Now
-            };
+            var repository = _unitOfWork.GetRepository<Banner>();
+            var entity = _mapper.Map<Banner>(input);
+            entity.CreatedAt = DateTime.Now;
 
-            _context.Banners.Add(banner);
-            await _context.SaveChangesAsync();
+            repository.Add(entity);
+            await _unitOfWork.SaveChangesAsync();
 
-            return new BannerDto
-            {
-                Id = banner.Id,
-                Title = banner.Title,
-                Description = banner.Description,
-                ImageUrl = banner.ImageUrl,
-                LinkUrl = banner.LinkUrl,
-                Sort = banner.Sort,
-                IsActive = banner.IsActive,
-                CreatedAt = banner.CreatedAt
-            };
+            return _mapper.Map<BannerDto>(entity);
         }
 
         /// <summary>
@@ -140,32 +132,19 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<BannerDto> UpdateAsync(int id, CreateUpdateBannerDto input)
         {
-            var banner = await _context.Banners.FindAsync(id);
-            if (banner == null)
+            var repository = _unitOfWork.GetRepository<Banner>();
+            var entity = await repository.GetByIdAsync(id);
+            
+            if (entity == null)
                 throw new Exception($"未找到ID为{id}的轮播图");
 
-            // 更新属性
-            banner.Title = input.Title;
-            banner.Description = input.Description;
-            banner.ImageUrl = input.ImageUrl;
-            banner.LinkUrl = input.LinkUrl;
-            banner.Sort = input.Sort;
-            banner.IsActive = input.IsActive;
-            banner.UpdatedAt = DateTime.Now;
+            _mapper.Map(input, entity);
+            entity.UpdatedAt = DateTime.Now;
 
-            await _context.SaveChangesAsync();
+            repository.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
-            return new BannerDto
-            {
-                Id = banner.Id,
-                Title = banner.Title,
-                Description = banner.Description,
-                ImageUrl = banner.ImageUrl,
-                LinkUrl = banner.LinkUrl,
-                Sort = banner.Sort,
-                IsActive = banner.IsActive,
-                CreatedAt = banner.CreatedAt
-            };
+            return _mapper.Map<BannerDto>(entity);
         }
 
         /// <summary>
@@ -173,12 +152,15 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<bool> DeleteAsync(int id)
         {
-            var banner = await _context.Banners.FindAsync(id);
-            if (banner == null)
+            var repository = _unitOfWork.GetRepository<Banner>();
+            var entity = await repository.GetByIdAsync(id);
+            
+            if (entity == null)
                 return false;
 
-            _context.Banners.Remove(banner);
-            await _context.SaveChangesAsync();
+            repository.Delete(entity);
+            await _unitOfWork.SaveChangesAsync();
+            
             return true;
         }
 
@@ -187,33 +169,26 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<BannerDto> ToggleStatusAsync(int id)
         {
-            var banner = await _context.Banners.FindAsync(id);
-            if (banner == null)
+            var repository = _unitOfWork.GetRepository<Banner>();
+            var entity = await repository.GetByIdAsync(id);
+            
+            if (entity == null)
                 throw new Exception($"未找到ID为{id}的轮播图");
 
             // 切换状态
-            banner.IsActive = !banner.IsActive;
-            banner.UpdatedAt = DateTime.Now;
+            entity.IsActive = !entity.IsActive;
+            entity.UpdatedAt = DateTime.Now;
 
-            await _context.SaveChangesAsync();
+            repository.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
-            return new BannerDto
-            {
-                Id = banner.Id,
-                Title = banner.Title,
-                Description = banner.Description,
-                ImageUrl = banner.ImageUrl,
-                LinkUrl = banner.LinkUrl,
-                Sort = banner.Sort,
-                IsActive = banner.IsActive,
-                CreatedAt = banner.CreatedAt
-            };
+            return _mapper.Map<BannerDto>(entity);
         }
 
         /// <summary>
         /// 获取排序属性
         /// </summary>
-        private static System.Linq.Expressions.Expression<Func<Banner, object>> GetSortProperty(string sortBy)
+        private static Expression<Func<Banner, object>> GetSortProperty(string sortBy)
         {
             return sortBy?.ToLower() switch
             {

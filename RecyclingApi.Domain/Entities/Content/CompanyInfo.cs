@@ -49,6 +49,21 @@ namespace RecyclingApi.Domain.Entities.Content
         public string Address { get; set; }
 
         /// <summary>
+        /// 公司优势列表
+        /// </summary>
+        public List<CompanyAdvantage> Advantages { get; set; }
+
+        /// <summary>
+        /// 公司发展历程列表
+        /// </summary>
+        public List<CompanyMilestone> Milestones { get; set; }
+
+        /// <summary>
+        /// 团队成员列表
+        /// </summary>
+        public List<TeamMember> TeamMembers { get; set; }
+
+        /// <summary>
         /// 创建时间
         /// </summary>
         public DateTime CreatedAt { get; set; }
@@ -98,7 +113,11 @@ namespace RecyclingApi.Domain.Entities.Content
         /// 更新时间
         /// </summary>
         public DateTime? UpdatedAt { get; set; }
+
+        public int CompanyInfoId { get; set; }
+        public CompanyInfo CompanyInfo { get; set; }
     }
+
 
     /// <summary>
     /// 公司发展历程实体
@@ -139,5 +158,8 @@ namespace RecyclingApi.Domain.Entities.Content
         /// 更新时间
         /// </summary>
         public DateTime? UpdatedAt { get; set; }
+
+        public int CompanyInfoId { get; set; } // 必须与 CompanyInfos.Id 类型一致
+        public CompanyInfo CompanyInfo { get; set; }
     }
 } 

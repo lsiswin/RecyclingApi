@@ -1,24 +1,42 @@
 import request from '@/utils/request'
 
 export interface CaseListQueryParams {
-  page: number
+  pageindex: number
   pageSize: number
-  title?: string
-  categoryId?: number | null
+  keyword?: string
+  category?: string
+  DeviceType?: string
+  Scale?: string  
+  IsActive?: boolean
 }
 
 export interface CaseData {
   id?: number
   title: string
-  categoryId: number | null
+  category: string
   client: string
-  completionTime: string | Date
-  coverImage: string
-  summary: string
-  content: string
-  images: string[]
-  isPublished: boolean
-  sortOrder: number
+  date: string | Date
+  image: string
+  description: string
+  fullDescription: string
+  deviceType: string
+  deviceCount: number
+  duration: string
+  scale: string
+  tags: string[]
+  projectDetails: string
+  highlights: string[]
+  isActive: boolean
+  sort: number
+  // 兼容旧属性
+  Category?: string
+  completionTime?: string | Date
+  coverImage?: string
+  summary?: string
+  content?: string
+  images?: string[]
+  isPublished?: boolean
+  sortOrder?: number
 }
 
 /**

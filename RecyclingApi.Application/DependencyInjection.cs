@@ -7,6 +7,14 @@ using RecyclingApi.Application.Common.MessageQueue;
 using RecyclingApi.Application.Services.Auth;
 using StackExchange.Redis;
 using RecyclingApi.Application.Services.Chat;
+using RecyclingApi.Application.Mappings;
+using RecyclingApi.Application.Services.Content;
+using RecyclingApi.Application.Services.HR;
+using RecyclingApi.Application.Services.Products;
+using RecyclingApi.Application.Services.Email;
+using RecyclingApi.Application.Repositories;
+using RecyclingApi.Application.Common.FileStorage;
+using RecyclingApi.Application.Services.Product;
 
 namespace RecyclingApi.Application;
 
@@ -15,7 +23,14 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Add AutoMapper
-        services.AddAutoMapper(typeof(DependencyInjection));
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.AddProfile<ChatMappingProfile>();
+            cfg.AddProfile<ContentMappingProfile>();
+            cfg.AddProfile<CompanyMappingProfile>();
+            cfg.AddProfile<ProductMappingProfile>();
+            cfg.AddProfile<HRMappingProfile>();
+        },typeof(DependencyInjection));
 
         return services;
     }
@@ -115,6 +130,19 @@ public static class DependencyInjection
     {
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IProductCategoryService, ProductCategoryService>();
+        services.AddScoped<IBannerService, BannerService>();
+        services.AddScoped<ICaseService, CaseService>();
+        services.AddScoped<IJobApplicationService, JobApplicationService>();
+        services.AddScoped<IResumeService, ResumeService>();
+        services.AddScoped<IJobPositionService, JobPositionService>();
+        services.AddScoped<ICompanyInfoService, CompanyInfoService>();
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        // 添加邮件服务
+        services.AddScoped<IEmailService, EmailService>();
+
 
         return services;
     }

@@ -67,10 +67,5 @@ namespace RecyclingApi.Domain.Entities.Content
         /// 团队成员类型（导航属性）
         /// </summary>
         public TeamMemberType TeamMemberType { get; set; }
-
-        /// <summary>
-        /// 关联员工（导航属性）
-        /// </summary>
-        public Employee Employee { get; set; }
     }
 } 

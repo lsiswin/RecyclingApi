@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using RecyclingApi.Application.DTOs.ContentDTOs;
-using RecyclingApi.Domain.Entities.Content;
-using RecyclingApi.Domain.Entities.Data;
 using AutoMapper;
+using RecyclingApi.Application.DTOs.ContentDTOs;
+using RecyclingApi.Application.Repositories;
+using RecyclingApi.Domain.Entities.Content;
 
 namespace RecyclingApi.Application.Services.Content
 {
@@ -15,15 +15,15 @@ namespace RecyclingApi.Application.Services.Content
     /// </summary>
     public class CompanyInfoService : ICompanyInfoService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public CompanyInfoService(ApplicationDbContext context, IMapper mapper)
+        public CompanyInfoService(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -32,9 +32,13 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CompanyInfoDto> GetCompanyInfoAsync()
         {
-            var entity = await _context.CompanyInfos.FirstOrDefaultAsync();
+            var repository = _unitOfWork.GetRepository<CompanyInfo>();
+            Expression<Func<CompanyInfo, bool>> predicate = e => true;
+            var entities = await repository.GetAsync(predicate, "Advantages", "Milestones");
+            var entity = entities.FirstOrDefault();
+
             if (entity == null)
-                return null;
+                throw new Exception("未找到公司信息");
 
             return _mapper.Map<CompanyInfoDto>(entity);
         }
@@ -44,24 +48,35 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CompanyInfoDto> UpdateCompanyInfoAsync(UpdateCompanyInfoDto input)
         {
-            var entity = await _context.CompanyInfos.FirstOrDefaultAsync();
+            var repository = _unitOfWork.GetRepository<CompanyInfo>();
+            Expression<Func<CompanyInfo, bool>> predicate = e => true;
+            var entities = await repository.GetAsync(predicate, "Advantages", "Milestones");
+            var entity = entities.FirstOrDefault();
             
             if (entity == null)
             {
                 // 如果不存在，则创建新的
                 entity = _mapper.Map<CompanyInfo>(input);
                 entity.CreatedAt = DateTime.Now;
-                _context.CompanyInfos.Add(entity);
+                repository.Add(entity);
             }
             else
             {
                 // 如果存在，则更新
                 _mapper.Map(input, entity);
                 entity.UpdatedAt = DateTime.Now;
-                _context.CompanyInfos.Update(entity);
+                repository.Update(entity);
             }
 
-            await _context.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
+
+            // 重新获取包含导航属性的实体
+            entities = await repository.GetAsync(e => e.Id == entity.Id, "Advantages", "Milestones");
+            entity = entities.FirstOrDefault();
+
+            if (entity == null)
+                throw new Exception("未找到更新后的公司信息");
+
             return _mapper.Map<CompanyInfoDto>(entity);
         }
 
@@ -72,11 +87,10 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<List<CompanyAdvantageDto>> GetAllAdvantagesAsync()
         {
-            var entities = await _context.CompanyAdvantages
-                .OrderBy(a => a.Sort)
-                .ToListAsync();
-
-            return _mapper.Map<List<CompanyAdvantageDto>>(entities);
+            var repository = _unitOfWork.GetRepository<CompanyAdvantage>();
+            var entities = await repository.GetAllAsync();
+            var sortedEntities = entities.OrderBy(a => a.Sort);
+            return _mapper.Map<List<CompanyAdvantageDto>>(sortedEntities);
         }
 
         /// <summary>
@@ -84,9 +98,11 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CompanyAdvantageDto> GetAdvantageByIdAsync(int id)
         {
-            var entity = await _context.CompanyAdvantages.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<CompanyAdvantage>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
-                return null;
+                throw new Exception($"未找到ID为{id}的公司优势");
 
             return _mapper.Map<CompanyAdvantageDto>(entity);
         }
@@ -96,11 +112,12 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CompanyAdvantageDto> CreateAdvantageAsync(CreateUpdateAdvantageDto input)
         {
+            var repository = _unitOfWork.GetRepository<CompanyAdvantage>();
             var entity = _mapper.Map<CompanyAdvantage>(input);
             entity.CreatedAt = DateTime.Now;
 
-            _context.CompanyAdvantages.Add(entity);
-            await _context.SaveChangesAsync();
+            repository.Add(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<CompanyAdvantageDto>(entity);
         }
@@ -110,15 +127,17 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CompanyAdvantageDto> UpdateAdvantageAsync(int id, CreateUpdateAdvantageDto input)
         {
-            var entity = await _context.CompanyAdvantages.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<CompanyAdvantage>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 throw new Exception($"未找到ID为{id}的公司优势");
 
             _mapper.Map(input, entity);
             entity.UpdatedAt = DateTime.Now;
 
-            _context.CompanyAdvantages.Update(entity);
-            await _context.SaveChangesAsync();
+            repository.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<CompanyAdvantageDto>(entity);
         }
@@ -128,12 +147,14 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<bool> DeleteAdvantageAsync(int id)
         {
-            var entity = await _context.CompanyAdvantages.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<CompanyAdvantage>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 return false;
 
-            _context.CompanyAdvantages.Remove(entity);
-            await _context.SaveChangesAsync();
+            repository.Delete(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
@@ -147,11 +168,10 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<List<CompanyMilestoneDto>> GetAllMilestonesAsync()
         {
-            var entities = await _context.CompanyMilestones
-                .OrderBy(m => m.Sort)
-                .ToListAsync();
-
-            return _mapper.Map<List<CompanyMilestoneDto>>(entities);
+            var repository = _unitOfWork.GetRepository<CompanyMilestone>();
+            var entities = await repository.GetAllAsync();
+            var sortedEntities = entities.OrderBy(m => m.Sort);
+            return _mapper.Map<List<CompanyMilestoneDto>>(sortedEntities);
         }
 
         /// <summary>
@@ -159,9 +179,11 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CompanyMilestoneDto> GetMilestoneByIdAsync(int id)
         {
-            var entity = await _context.CompanyMilestones.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<CompanyMilestone>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
-                return null;
+                throw new Exception($"未找到ID为{id}的公司发展历程");
 
             return _mapper.Map<CompanyMilestoneDto>(entity);
         }
@@ -171,11 +193,12 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CompanyMilestoneDto> CreateMilestoneAsync(CreateUpdateMilestoneDto input)
         {
+            var repository = _unitOfWork.GetRepository<CompanyMilestone>();
             var entity = _mapper.Map<CompanyMilestone>(input);
             entity.CreatedAt = DateTime.Now;
 
-            _context.CompanyMilestones.Add(entity);
-            await _context.SaveChangesAsync();
+            repository.Add(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<CompanyMilestoneDto>(entity);
         }
@@ -185,15 +208,17 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CompanyMilestoneDto> UpdateMilestoneAsync(int id, CreateUpdateMilestoneDto input)
         {
-            var entity = await _context.CompanyMilestones.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<CompanyMilestone>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 throw new Exception($"未找到ID为{id}的公司发展历程");
 
             _mapper.Map(input, entity);
             entity.UpdatedAt = DateTime.Now;
 
-            _context.CompanyMilestones.Update(entity);
-            await _context.SaveChangesAsync();
+            repository.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<CompanyMilestoneDto>(entity);
         }
@@ -203,12 +228,14 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<bool> DeleteMilestoneAsync(int id)
         {
-            var entity = await _context.CompanyMilestones.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<CompanyMilestone>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 return false;
 
-            _context.CompanyMilestones.Remove(entity);
-            await _context.SaveChangesAsync();
+            repository.Delete(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
@@ -222,14 +249,13 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<List<TeamMemberDto>> GetAllTeamMembersAsync()
         {
-            var entities = await _context.TeamMembers
-                .Include(t => t.TeamMemberType)
-                .Include(t => t.Employee)
-                .OrderBy(t => t.TeamMemberType.Sort)
-                .ThenBy(t => t.Sort)
-                .ToListAsync();
-
-            return _mapper.Map<List<TeamMemberDto>>(entities);
+            var repository = _unitOfWork.GetRepository<TeamMember>();
+            Expression<Func<TeamMember, bool>> predicate = e => true;
+            var entities = await repository.GetAsync(predicate, "TeamMemberType");
+            var sortedEntities = entities
+                .OrderBy(t => t.TeamMemberType?.Sort)
+                .ThenBy(t => t.Sort);
+            return _mapper.Map<List<TeamMemberDto>>(sortedEntities);
         }
 
         /// <summary>
@@ -237,13 +263,11 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<TeamMemberDto> GetTeamMemberByIdAsync(int id)
         {
-            var entity = await _context.TeamMembers
-                .Include(t => t.TeamMemberType)
-                .Include(t => t.Employee)
-                .FirstOrDefaultAsync(t => t.Id == id);
-
+            var repository = _unitOfWork.GetRepository<TeamMember>();
+            var entity = await repository.GetByIdAsync(id, "TeamMemberType");
+            
             if (entity == null)
-                return null;
+                throw new Exception($"未找到ID为{id}的团队成员");
 
             return _mapper.Map<TeamMemberDto>(entity);
         }
@@ -253,17 +277,19 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<TeamMemberDto> CreateTeamMemberAsync(CreateUpdateTeamMemberDto input)
         {
+            var repository = _unitOfWork.GetRepository<TeamMember>();
             var entity = _mapper.Map<TeamMember>(input);
             entity.CreatedAt = DateTime.Now;
 
-            _context.TeamMembers.Add(entity);
-            await _context.SaveChangesAsync();
+            repository.Add(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             // 重新获取包含导航属性的实体
-            entity = await _context.TeamMembers
-                .Include(t => t.TeamMemberType)
-                .Include(t => t.Employee)
-                .FirstOrDefaultAsync(t => t.Id == entity.Id);
+            var entities = await repository.GetAsync(t => t.Id == entity.Id, "TeamMemberType");
+            entity = entities.FirstOrDefault();
+
+            if (entity == null)
+                throw new Exception("未找到创建的团队成员");
 
             return _mapper.Map<TeamMemberDto>(entity);
         }
@@ -273,21 +299,24 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<TeamMemberDto> UpdateTeamMemberAsync(int id, CreateUpdateTeamMemberDto input)
         {
-            var entity = await _context.TeamMembers.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<TeamMember>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 throw new Exception($"未找到ID为{id}的团队成员");
 
             _mapper.Map(input, entity);
             entity.UpdatedAt = DateTime.Now;
 
-            _context.TeamMembers.Update(entity);
-            await _context.SaveChangesAsync();
+            repository.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             // 重新获取包含导航属性的实体
-            entity = await _context.TeamMembers
-                .Include(t => t.TeamMemberType)
-                .Include(t => t.Employee)
-                .FirstOrDefaultAsync(t => t.Id == id);
+            var entities = await repository.GetAsync(t => t.Id == id, "TeamMemberType");
+            entity = entities.FirstOrDefault();
+
+            if (entity == null)
+                throw new Exception($"未找到更新后的团队成员");
 
             return _mapper.Map<TeamMemberDto>(entity);
         }
@@ -297,16 +326,18 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<bool> DeleteTeamMemberAsync(int id)
         {
-            var entity = await _context.TeamMembers.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<TeamMember>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 return false;
 
-            _context.TeamMembers.Remove(entity);
-            await _context.SaveChangesAsync();
+            repository.Delete(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
 
         #endregion
     }
-} 
+}

@@ -105,7 +105,7 @@ public class ProductCategoryRequestDto : PagedRequestDto
     /// <summary>
     /// 关键字（分类名称、编码、描述）
     /// </summary>
-    public string Keyword { get; set; }
+    public string? Keyword { get; set; }
 
     /// <summary>
     /// 是否启用

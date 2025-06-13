@@ -12,8 +12,10 @@ using RecyclingApi.Domain.Entities.User;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 using System.Text;
-using RecyclingApi.Domain.Entities.Data.Repositories;
 using RecyclingApi.Application.Services.Content;
+using RecyclingApi.Application.Repositories;
+using RecyclingApi.Application.Services.Products;
+using RecyclingApi.Application.Services.HR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -166,14 +168,9 @@ builder.Services.AddAuthentication(options =>
 // 添加Application层服务（包含Redis和RabbitMQ）
 builder.Services.AddApplicationFull(builder.Configuration);
 
-// 注册服务
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IBannerService, BannerService>();
-builder.Services.AddScoped<ICaseService,CaseService>();
-builder.Services.AddScoped<ICompanyInfoService, CompanyInfoService>();
-// 添加邮件服务
-builder.Services.AddScoped<IEmailService,EmailService>();
+//添加仓储和工作单元服务
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
 // 添加聊天服务
 builder.Services.AddChatServices(builder.Configuration);
@@ -200,6 +197,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    await UserSeeder.SeedUsersAsync(userManager, roleManager);
     context.Database.EnsureCreated();
     ExtendedSeedData.Initialize(context);
 }

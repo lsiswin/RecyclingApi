@@ -18,13 +18,26 @@
             <el-input v-model="searchForm.title" placeholder="输入案例标题搜索" clearable />
           </el-form-item>
           <el-form-item label="案例分类">
-            <el-select v-model="searchForm.categoryId" placeholder="选择分类" clearable>
-              <el-option
-                v-for="item in categoryOptions"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              />
+            <el-select style="width: 100px" v-model="searchForm.category" placeholder="选择分类" clearable>
+              <el-option label="企业回收" value="enterprise" />
+              <el-option label="学校回收" value="school" />
+              <el-option label="政府机构" value="government" />
+              <el-option label="医院回收" value="hospital" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="设备类型">
+            <el-select style="width: 120px" v-model="searchForm.deviceType" placeholder="选择设备类型" clearable>
+              <el-option label="台式电脑" value="desktop" />
+              <el-option label="笔记本电脑" value="laptop" />
+              <el-option label="服务器" value="server" />
+              <el-option label="网络设备" value="network" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="回收规模">
+            <el-select style="width: 100px" v-model="searchForm.scale" placeholder="选择规模" clearable>
+              <el-option label="小规模" value="small" />
+              <el-option label="中规模" value="medium" />
+              <el-option label="大规模" value="large" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -41,39 +54,43 @@
         border
         style="width: 100%"
       >
-        <el-table-column prop="title" label="案例标题" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="categoryName" label="所属分类" width="150" />
-        <el-table-column prop="client" label="客户名称" width="150" show-overflow-tooltip />
-        <el-table-column label="封面图" width="120">
+        <el-table-column align="center" prop="title" label="案例标题" min-width="180" show-overflow-tooltip />
+        <el-table-column align="center" label="所属分类" width="120">
+          <template #default="scope">
+            {{ getCategoryName(scope.row.category) }}
+          </template>
+        </el-table-column>
+        <el-table-column align="center" prop="client" label="客户名称" width="150" show-overflow-tooltip />
+        <el-table-column align="center" label="封面图" width="120">
           <template #default="scope">
             <el-image
-              v-if="scope.row.coverImage"
-              :src="scope.row.coverImage"
+              v-if="scope.row.image"
+              :src="scope.row.image"
               fit="cover"
               style="width: 80px; height: 50px"
-              :preview-src-list="[scope.row.coverImage]"
+              :preview-src-list="[scope.row.image]"
               preview-teleported
             />
             <span v-else>无封面</span>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="状态" width="100">
+        <el-table-column align="center" prop="description" label="案例简介" min-width="250" show-overflow-tooltip />
+        <el-table-column align="center" label="状态" width="100">
           <template #default="scope">
-            <el-tag :type="scope.row.isPublished ? 'success' : 'info'">
-              {{ scope.row.isPublished ? '已发布' : '草稿' }}
+            <el-tag :type="scope.row.isActive ? 'success' : 'info'">
+              {{ scope.row.isActive ? '已发布' : '草稿' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column align="center" label="操作" width="220" fixed="right">
           <template #default="scope">
             <el-button size="small" @click="editCase(scope.row)">编辑</el-button>
             <el-button 
               size="small" 
-              :type="scope.row.isPublished ? 'warning' : 'success'"
+              :type="scope.row.isActive ? 'warning' : 'success'"
               @click="togglePublishStatus(scope.row)"
             >
-              {{ scope.row.isPublished ? '取消发布' : '发布' }}
+              {{ scope.row.isActive ? '取消发布' : '发布' }}
             </el-button>
             <el-button
               size="small"
@@ -115,28 +132,27 @@
         <el-form-item label="案例标题" prop="title">
           <el-input v-model="caseForm.title" placeholder="请输入案例标题" />
         </el-form-item>
-        <el-form-item label="所属分类" prop="categoryId">
-          <el-select v-model="caseForm.categoryId" placeholder="选择所属分类">
-            <el-option
-              v-for="item in categoryOptions"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
+        <el-form-item label="所属分类" prop="category">
+          <el-select v-model="caseForm.category" placeholder="选择所属分类">
+            <el-option label="企业回收" value="enterprise" />
+            <el-option label="学校回收" value="school" />
+            <el-option label="政府机构" value="government" />
+            <el-option label="医院回收" value="hospital" />
           </el-select>
         </el-form-item>
         <el-form-item label="客户名称" prop="client">
           <el-input v-model="caseForm.client" placeholder="请输入客户名称" />
         </el-form-item>
-        <el-form-item label="完成时间" prop="completionTime">
+        <el-form-item label="完成时间" prop="date">
           <el-date-picker
-            v-model="caseForm.completionTime"
+            v-model="caseForm.date"
             type="date"
             placeholder="选择完成日期"
             format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
           />
         </el-form-item>
-        <el-form-item label="封面图" prop="coverImage">
+        <el-form-item label="封面图" prop="image">
           <el-upload
             class="cover-uploader"
             action="#"
@@ -144,25 +160,46 @@
             :auto-upload="false"
             :on-change="handleCoverChange"
           >
-            <img v-if="caseForm.coverImage" :src="caseForm.coverImage" class="cover-preview" />
+            <img v-if="caseForm.image" :src="caseForm.image" class="cover-preview" />
             <el-icon v-else class="uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>
-        <el-form-item label="案例简介" prop="summary">
+        <el-form-item label="案例简介" prop="description">
           <el-input
-            v-model="caseForm.summary"
+            v-model="caseForm.description"
             type="textarea"
             :rows="3"
             placeholder="请输入案例简介"
           />
         </el-form-item>
-        <el-form-item label="案例详情" prop="content">
+        <el-form-item label="案例详情" prop="fullDescription">
           <el-input
-            v-model="caseForm.content"
+            v-model="caseForm.fullDescription"
             type="textarea"
             :rows="5"
             placeholder="请输入案例详情"
           />
+        </el-form-item>
+        <el-form-item label="设备类型" prop="deviceType">
+          <el-select v-model="caseForm.deviceType" placeholder="选择设备类型">
+            <el-option label="台式电脑" value="desktop" />
+            <el-option label="笔记本电脑" value="laptop" />
+            <el-option label="服务器" value="server" />
+            <el-option label="网络设备" value="network" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="设备数量" prop="deviceCount">
+          <el-input-number v-model="caseForm.deviceCount" :min="1" :max="10000" />
+        </el-form-item>
+        <el-form-item label="项目周期" prop="duration">
+          <el-input v-model="caseForm.duration" placeholder="例如：7天" />
+        </el-form-item>
+        <el-form-item label="回收规模" prop="scale">
+          <el-select v-model="caseForm.scale" placeholder="选择回收规模">
+            <el-option label="小规模" value="small" />
+            <el-option label="中规模" value="medium" />
+            <el-option label="大规模" value="large" />
+          </el-select>
         </el-form-item>
         <el-form-item label="相关图片">
           <el-upload
@@ -175,14 +212,48 @@
             <el-icon><Plus /></el-icon>
           </el-upload>
         </el-form-item>
-        <el-form-item label="发布状态">
-          <el-switch
-            v-model="caseForm.isPublished"
-            :active-text="caseForm.isPublished ? '已发布' : '草稿'"
+        <el-form-item label="标签" prop="tags">
+          <el-select
+            v-model="caseForm.tags"
+            multiple
+            filterable
+            allow-create
+            default-first-option
+            placeholder="请输入标签，按回车键确认"
+          >
+            <el-option
+              v-for="tag in defaultTags"
+              :key="tag"
+              :label="tag"
+              :value="tag"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="项目详情" prop="projectDetails">
+          <el-input
+            v-model="caseForm.projectDetails"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入项目详情"
           />
         </el-form-item>
-        <el-form-item label="排序" prop="sortOrder">
-          <el-input-number v-model="caseForm.sortOrder" :min="0" :max="999" />
+        <el-form-item label="服务亮点">
+          <div v-for="(highlight, index) in caseForm.highlights" :key="index" class="highlight-item">
+            <el-input v-model="caseForm.highlights[index]" placeholder="请输入服务亮点" />
+            <el-button type="danger" circle @click="removeHighlight(index)">
+              <el-icon><Close /></el-icon>
+            </el-button>
+          </div>
+          <el-button type="primary" @click="addHighlight">添加亮点</el-button>
+        </el-form-item>
+        <el-form-item label="发布状态">
+          <el-switch
+            v-model="caseForm.isActive"
+            :active-text="caseForm.isActive ? '已发布' : '草稿'"
+          />
+        </el-form-item>
+        <el-form-item label="排序" prop="sort">
+          <el-input-number v-model="caseForm.sort" :min="0" :max="999" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -196,49 +267,59 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Close } from '@element-plus/icons-vue'
 import { getCaseList, getCaseById, createCase, updateCase, deleteCase, toggleCaseStatus } from '@/api/case'
-import { getAllActiveCategories } from '@/api/category'
+import dayjs from 'dayjs'
 
 // 类型定义
 interface Case {
   id: number
   title: string
-  categoryId: number
-  categoryName: string
+  category: string
   client: string
-  completionTime: string | Date
-  coverImage: string
-  summary: string
-  content: string
-  images: string[]
-  isPublished: boolean
-  sortOrder: number
-  createTime: string
+  date: string | Date
+  image: string
+  description: string
+  fullDescription: string
+  deviceType: string
+  deviceCount: number
+  duration: string
+  scale: string
+  tags: string[]
+  views: number
+  rating: number
+  projectDetails: string
+  highlights: string[]
+  isActive: boolean
+  sort: number
+  createdAt?: string
 }
 
 interface CaseForm {
   id?: number
   title: string
-  categoryId: number | null
+  category: string
   client: string
-  completionTime: string | Date
-  coverImage: string
-  summary: string
-  content: string
-  images: string[]
-  isPublished: boolean
-  sortOrder: number
-}
-
-interface Category {
-  id: number
-  name: string
+  date: string | Date
+  image: string
+  description: string
+  fullDescription: string
+  deviceType: string
+  deviceCount: number
+  duration: string
+  scale: string
+  tags: string[]
+  projectDetails: string
+  highlights: string[]
+  isActive: boolean
+  sort: number
 }
 
 interface SearchForm {
   title: string
-  categoryId: number | null
+  category: string
+  deviceType: string
+  scale: string
 }
 
 // 列表数据
@@ -251,7 +332,9 @@ const total = ref(0)
 // 搜索表单
 const searchForm = reactive<SearchForm>({
   title: '',
-  categoryId: null
+  category: '',
+  deviceType: '',
+  scale: ''
 })
 
 // 案例表单
@@ -260,64 +343,100 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const caseForm = reactive<CaseForm>({
   title: '',
-  categoryId: null,
+  category: '',
   client: '',
-  completionTime: '',
-  coverImage: '',
-  summary: '',
-  content: '',
-  images: [],
-  isPublished: false,
-  sortOrder: 0
+  date: '',
+  image: '',
+  description: '',
+  fullDescription: '',
+  deviceType: '',
+  deviceCount: 0,
+  duration: '',
+  scale: '',
+  tags: [],
+  projectDetails: '',
+  highlights: [],
+  isActive: false,
+  sort: 0
 })
 
-// 分类选项
-const categoryOptions = ref<Category[]>([])
+// 默认标签列表
+const defaultTags = [
+  '数据安全', '环保处理', '批量回收', '服务器回收', '电脑回收',
+  '网络设备', '企业服务', '学校服务', '政府项目', '医疗设备'
+]
+
+// 分类名称映射
+const categoryMap = {
+  'enterprise': '企业回收',
+  'school': '学校回收',
+  'government': '政府机构',
+  'hospital': '医院回收'
+}
+
+// 获取分类名称
+const getCategoryName = (category: string) => {
+  return categoryMap[category as keyof typeof categoryMap] || category
+}
 
 // 表单验证规则
 const caseRules = {
   title: [{ required: true, message: '请输入案例标题', trigger: 'blur' }],
-  categoryId: [{ required: true, message: '请选择所属分类', trigger: 'change' }],
+  category: [{ required: true, message: '请选择所属分类', trigger: 'change' }],
   client: [{ required: true, message: '请输入客户名称', trigger: 'blur' }],
-  coverImage: [{ required: true, message: '请上传封面图', trigger: 'change' }],
-  summary: [{ required: true, message: '请输入案例简介', trigger: 'blur' }]
+  date: [{ required: true, message: '请选择完成日期', trigger: 'change' }],
+  image: [{ required: true, message: '请上传封面图', trigger: 'change' }],
+  description: [{ required: true, message: '请输入案例简介', trigger: 'blur' }],
+  fullDescription: [{ required: true, message: '请输入案例详情', trigger: 'blur' }],
+  deviceType: [{ required: true, message: '请选择设备类型', trigger: 'change' }],
+  deviceCount: [{ required: true, message: '请输入设备数量', trigger: 'blur' }],
+  duration: [{ required: true, message: '请输入项目周期', trigger: 'blur' }],
+  scale: [{ required: true, message: '请选择回收规模', trigger: 'change' }],
+  projectDetails: [{ required: true, message: '请输入项目详情', trigger: 'blur' }]
 }
 
 // 初始化加载
 onMounted(() => {
   loadCases()
-  loadCategories()
 })
-
-// 加载分类
-const loadCategories = async () => {
-  try {
-    const res = await getAllActiveCategories()
-    categoryOptions.value = res.data || []
-  } catch (error) {
-    console.error('获取分类失败', error)
-    ElMessage.error('获取分类列表失败')
-  }
-}
 
 // 加载案例列表
 const loadCases = async () => {
   loading.value = true
   try {
     const res = await getCaseList({
-      page: page.value,
+      pageindex: page.value,
       pageSize: pageSize.value,
-      title: searchForm.title,
-      categoryId: searchForm.categoryId
+      keyword: searchForm.title,
+      category: searchForm.category,
+      DeviceType: searchForm.deviceType,
+      Scale: searchForm.scale,
+      IsActive: true
     })
     
-    if (res.data) {
-      caseList.value = res.data.items || []
+    console.log('API响应:', res.data)
+    
+    if (res.data && res.data.data) {
+      // 检查数据是否为数组，如果不是，尝试提取items
+      const dataItems = Array.isArray(res.data.data) 
+        ? res.data.data 
+        : (res.data.data.items || [])
+      
+      // 确保返回的是数组
+      caseList.value = Array.isArray(dataItems) ? dataItems : []
       total.value = res.data.totalCount || 0
+      
+      console.log('解析后的案例列表:', caseList.value)
+    } else {
+      caseList.value = []
+      total.value = 0
+      console.warn('返回数据格式不符合预期', res.data)
     }
   } catch (error) {
     console.error('获取案例列表失败', error)
     ElMessage.error('获取案例列表失败')
+    caseList.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
@@ -326,7 +445,9 @@ const loadCases = async () => {
 // 重置搜索
 const resetSearch = () => {
   searchForm.title = ''
-  searchForm.categoryId = null
+  searchForm.category = ''
+  searchForm.deviceType = ''
+  searchForm.scale = ''
   loadCases()
 }
 
@@ -346,15 +467,21 @@ const openCreateDialog = () => {
   isEdit.value = false
   Object.assign(caseForm, {
     title: '',
-    categoryId: null,
+    category: '',
     client: '',
-    completionTime: '',
-    coverImage: '',
-    summary: '',
-    content: '',
-    images: [],
-    isPublished: false,
-    sortOrder: 0
+    date: '',
+    image: '',
+    description: '',
+    fullDescription: '',
+    deviceType: '',
+    deviceCount: 0,
+    duration: '',
+    scale: '',
+    tags: [],
+    projectDetails: '',
+    highlights: [],
+    isActive: false,
+    sort: 0
   })
   dialogVisible.value = true
 }
@@ -364,8 +491,22 @@ const editCase = async (row: Case) => {
   isEdit.value = true
   try {
     const res = await getCaseById(row.id)
+    console.log('案例详情:', res.data)
+    
     if (res.data) {
-      Object.assign(caseForm, res.data)
+      // 深拷贝，防止直接修改原始数据
+      const caseData = JSON.parse(JSON.stringify(res.data.data))
+      
+      // 确保日期格式正确
+      if (caseData.date && typeof caseData.date === 'string') {
+        caseData.date = dayjs(caseData.date).format('YYYY-MM-DD')
+      }
+      
+      // 确保标签和亮点是数组
+      caseData.tags = Array.isArray(caseData.tags) ? caseData.tags : []
+      caseData.highlights = Array.isArray(caseData.highlights) ? caseData.highlights : []
+      
+      Object.assign(caseForm, caseData)
     }
     dialogVisible.value = true
   } catch (error) {
@@ -377,7 +518,7 @@ const editCase = async (row: Case) => {
 // 切换发布状态
 const togglePublishStatus = (row: Case) => {
   ElMessageBox.confirm(
-    `确定要${row.isPublished ? '取消发布' : '发布'}该案例吗？`,
+    `确定要${row.isActive ? '取消发布' : '发布'}该案例吗？`,
     '提示',
     {
       confirmButtonText: '确定',
@@ -387,8 +528,8 @@ const togglePublishStatus = (row: Case) => {
   ).then(async () => {
     try {
       await toggleCaseStatus(row.id)
-      row.isPublished = !row.isPublished
-      ElMessage.success(`${row.isPublished ? '发布' : '取消发布'}成功`)
+      row.isActive = !row.isActive
+      ElMessage.success(`${row.isActive ? '发布' : '取消发布'}成功`)
     } catch (error) {
       console.error('更新状态失败', error)
       ElMessage.error('操作失败')
@@ -414,6 +555,15 @@ const handleDelete = (row: Case) => {
   })
 }
 
+// 服务亮点操作
+const addHighlight = () => {
+  caseForm.highlights.push('')
+}
+
+const removeHighlight = (index: number) => {
+  caseForm.highlights.splice(index, 1)
+}
+
 // 图片上传处理
 interface UploadFile {
   raw: File
@@ -424,7 +574,7 @@ const handleCoverChange = (file: UploadFile) => {
   reader.readAsDataURL(file.raw)
   reader.onload = () => {
     if (reader.result) {
-      caseForm.coverImage = reader.result as string
+      caseForm.image = reader.result as string
     }
   }
 }
@@ -439,16 +589,16 @@ const handleImagesChange = (uploadInfo: UploadChangeEvent) => {
   reader.readAsDataURL(file.raw)
   reader.onload = () => {
     if (reader.result) {
-      caseForm.images.push(reader.result as string)
+      // 这里应该处理多图片上传，但表单中没有对应字段
+      // 此处仅作示例
+      console.log('上传图片:', reader.result)
     }
   }
 }
 
 const handleImageRemove = (file: any, fileList: any[]) => {
-  const index = caseForm.images.indexOf(file.url)
-  if (index !== -1) {
-    caseForm.images.splice(index, 1)
-  }
+  // 这里应该处理图片移除，但表单中没有对应字段
+  console.log('移除图片:', file, fileList)
 }
 
 // 提交表单
@@ -458,21 +608,34 @@ const submitCaseForm = async () => {
   try {
     await caseFormRef.value.validate()
     
+    // 准备要提交的数据
+    const formData = {
+      ...caseForm,
+      // 确保日期格式正确
+      date: typeof caseForm.date === 'string' ? caseForm.date : dayjs(caseForm.date).format('YYYY-MM-DD')
+    }
+    
+    console.log('提交数据:', formData)
+    
     if (isEdit.value && caseForm.id) {
       // 更新案例
-      await updateCase(caseForm.id, caseForm)
+      await updateCase(caseForm.id, formData)
       ElMessage.success('更新成功')
     } else {
       // 创建案例
-      await createCase(caseForm)
+      await createCase(formData)
       ElMessage.success('创建成功')
     }
     
     dialogVisible.value = false
     loadCases()
   } catch (error) {
-    console.error('表单验证失败', error)
-    ElMessage.error('请填写必填项')
+    console.error('表单验证或提交失败', error)
+    if (error instanceof Error) {
+      ElMessage.error(`操作失败: ${error.message}`)
+    } else {
+      ElMessage.error('请填写必填项')
+    }
   }
 }
 </script>
@@ -525,5 +688,15 @@ const submitCaseForm = async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.highlight-item .el-button {
+  margin-left: 10px;
 }
 </style>

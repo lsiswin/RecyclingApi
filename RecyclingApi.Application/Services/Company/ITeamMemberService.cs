@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using RecyclingApi.Application.DTOs.Company;
 using RecyclingApi.Application.Common;
 using RecyclingApi.Application.DTOs.ContentDTOs;
+using RecyclingApi.Application.DTOs;
 
 namespace RecyclingApi.Application.Services.Company
 {
@@ -93,6 +94,15 @@ namespace RecyclingApi.Application.Services.Company
         /// </summary>
         /// <returns>员工列表</returns>
         Task<List<EmployeeSimpleDto>> GetAllEmployeesSimpleAsync();
+
+        /// <summary>
+        /// 获取团队成员分页列表
+        /// </summary>
+        /// <param name="pageIndex">页码</param>
+        /// <param name="pageSize">每页大小</param>
+        /// <param name="typeId">可选类型ID筛选</param>
+        /// <returns>分页结果</returns>
+        Task<PagedResponseDto<TeamMemberDto>> GetPagedTeamMembersAsync(int pageIndex, int pageSize, int? typeId = null);
 
         #endregion
     }

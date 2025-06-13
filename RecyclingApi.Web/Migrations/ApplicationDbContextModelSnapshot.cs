@@ -839,6 +839,9 @@ namespace RecyclingApi.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CompanyInfoId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -864,6 +867,8 @@ namespace RecyclingApi.Web.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyInfoId");
 
                     b.ToTable("CompanyAdvantages");
                 });
@@ -927,6 +932,9 @@ namespace RecyclingApi.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CompanyInfoId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -952,6 +960,8 @@ namespace RecyclingApi.Web.Migrations
                         .HasColumnType("nvarchar(10)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyInfoId");
 
                     b.ToTable("CompanyMilestones");
                 });
@@ -1047,6 +1057,9 @@ namespace RecyclingApi.Web.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int?>("CompanyInfoId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -1081,6 +1094,8 @@ namespace RecyclingApi.Web.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyInfoId");
 
                     b.HasIndex("EmployeeId");
 
@@ -1187,6 +1202,174 @@ namespace RecyclingApi.Web.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.HR.JobApplication", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AppliedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CoverLetter")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("JobPositionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResumeUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobPositionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("JobApplications");
+                });
+
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.HR.JobPosition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PostedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Requirements")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("SalaryMax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SalaryMin")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("JobPositions");
+                });
+
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.HR.Resume", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdditionalInfo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Education")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Skills")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("WorkExperience")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Resumes");
                 });
 
             modelBuilder.Entity("RecyclingApi.Domain.Entities.Products.ProcessStep", b =>
@@ -1569,12 +1752,37 @@ namespace RecyclingApi.Web.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.Content.CompanyAdvantage", b =>
+                {
+                    b.HasOne("RecyclingApi.Domain.Entities.Content.CompanyInfo", "CompanyInfo")
+                        .WithMany("Advantages")
+                        .HasForeignKey("CompanyInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompanyInfo");
+                });
+
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.Content.CompanyMilestone", b =>
+                {
+                    b.HasOne("RecyclingApi.Domain.Entities.Content.CompanyInfo", "CompanyInfo")
+                        .WithMany("Milestones")
+                        .HasForeignKey("CompanyInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CompanyInfo");
+                });
+
             modelBuilder.Entity("RecyclingApi.Domain.Entities.Content.TeamMember", b =>
                 {
-                    b.HasOne("RecyclingApi.Domain.Entities.HR.Employee", "Employee")
+                    b.HasOne("RecyclingApi.Domain.Entities.Content.CompanyInfo", null)
                         .WithMany("TeamMembers")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("CompanyInfoId");
+
+                    b.HasOne("RecyclingApi.Domain.Entities.HR.Employee", null)
+                        .WithMany("TeamMembers")
+                        .HasForeignKey("EmployeeId");
 
                     b.HasOne("RecyclingApi.Domain.Entities.Content.TeamMemberType", "TeamMemberType")
                         .WithMany("TeamMembers")
@@ -1582,9 +1790,37 @@ namespace RecyclingApi.Web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Employee");
-
                     b.Navigation("TeamMemberType");
+                });
+
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.HR.JobApplication", b =>
+                {
+                    b.HasOne("RecyclingApi.Domain.Entities.HR.JobPosition", "JobPosition")
+                        .WithMany("Applications")
+                        .HasForeignKey("JobPositionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RecyclingApi.Domain.Entities.User.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobPosition");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.HR.Resume", b =>
+                {
+                    b.HasOne("RecyclingApi.Domain.Entities.User.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RecyclingApi.Domain.Entities.Products.ProcessStep", b =>
@@ -1633,6 +1869,15 @@ namespace RecyclingApi.Web.Migrations
                     b.Navigation("SentMessages");
                 });
 
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.Content.CompanyInfo", b =>
+                {
+                    b.Navigation("Advantages");
+
+                    b.Navigation("Milestones");
+
+                    b.Navigation("TeamMembers");
+                });
+
             modelBuilder.Entity("RecyclingApi.Domain.Entities.Content.TeamMemberType", b =>
                 {
                     b.Navigation("TeamMembers");
@@ -1641,6 +1886,11 @@ namespace RecyclingApi.Web.Migrations
             modelBuilder.Entity("RecyclingApi.Domain.Entities.HR.Employee", b =>
                 {
                     b.Navigation("TeamMembers");
+                });
+
+            modelBuilder.Entity("RecyclingApi.Domain.Entities.HR.JobPosition", b =>
+                {
+                    b.Navigation("Applications");
                 });
 
             modelBuilder.Entity("RecyclingApi.Domain.Entities.Products.Product", b =>

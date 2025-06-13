@@ -110,8 +110,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     /// 聊天会话数据集
     /// </summary>
     public DbSet<ChatSession> ChatSessions { get; set; }
-
-
+    /// <summary>
+    /// 职位数据集
+    /// </summary>
+    public DbSet<JobPosition> JobPositions { get; set; }
+    /// <summary>
+    /// 职位申请数据集
+    /// </summary>
+    public DbSet<JobApplication> JobApplications { get; set; }
+    /// <summary>
+    /// 简历数据集
+    /// </summary>
+    public DbSet<Resume> Resumes { get; set; }
 
     /// <summary>
     /// 配置实体模型
@@ -284,11 +294,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                   .HasForeignKey(e => e.TeamMemberTypeId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            // 配置与Employee的关系
-            entity.HasOne(e => e.Employee)
-                  .WithMany(e => e.TeamMembers)
-                  .HasForeignKey(e => e.EmployeeId)
-                  .OnDelete(DeleteBehavior.SetNull);
         });
     }
 

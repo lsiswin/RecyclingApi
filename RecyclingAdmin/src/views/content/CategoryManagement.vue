@@ -3,7 +3,7 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>案例分类管理</span>
+          <span>产品分类管理</span>
           <el-button type="primary" @click="openCreateDialog">
             <el-icon><Plus /></el-icon>
             添加分类
@@ -18,10 +18,10 @@
         border
         style="width: 100%"
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="分类名称" width="200" />
-        <el-table-column prop="description" label="描述" min-width="180" show-overflow-tooltip />
-        <el-table-column label="封面图" width="120">
+        <el-table-column align="center" prop="id" label="ID" width="80" />
+        <el-table-column  align="center" prop="name" label="分类名称" width="200" />
+        <el-table-column align="center" prop="description" label="描述" min-width="180" show-overflow-tooltip />
+        <el-table-column align="center" label="封面图" width="120">
           <template #default="scope">
             <el-image
               v-if="scope.row.coverImage"
@@ -34,16 +34,16 @@
             <span v-else>无封面</span>
           </template>
         </el-table-column>
-        <el-table-column prop="casesCount" label="案例数量" width="100" align="center" />
-        <el-table-column prop="sortOrder" label="排序" width="100" align="center" />
-        <el-table-column label="状态" width="100">
+        <el-table-column align="center" prop="casesCount" label="案例数量" width="100"  />
+        <el-table-column align="center" prop="sortOrder" label="排序" width="100" />
+        <el-table-column align="center" label="状态" width="80">
           <template #default="scope">
             <el-tag :type="scope.row.isActive ? 'success' : 'info'">
               {{ scope.row.isActive ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column  align="center" label="操作" width="220" fixed="right">
           <template #default="scope">
             <el-button size="small" @click="editCategory(scope.row)">编辑</el-button>
             <el-button 
@@ -184,16 +184,17 @@ onMounted(() => {
 
 // 加载分类列表
 const loadCategories = async () => {
-  loading.value = true
   try {
     const res = await getCategoryList({
-      page: page.value,
-      pageSize: pageSize.value
+      pageindex: page.value,
+      pageSize: pageSize.value,
+      keyword: '',
+      IsActive: true
     })
     
     if (res.data) {
-      categories.value = res.data.items || []
-      total.value = res.data.totalCount || 0
+      categories.value = res.data.data.items ||[]
+      total.value = res.data.totalCount
     }
   } catch (error) {
     console.error('获取分类列表失败', error)

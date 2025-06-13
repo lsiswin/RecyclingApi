@@ -46,7 +46,7 @@ namespace RecyclingApi.Web.Controllers
         /// 创建案例
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ApiResponse<CaseDto>> Create([FromBody] CreateUpdateCaseDto input)
         {
             if (!ModelState.IsValid)
@@ -60,7 +60,7 @@ namespace RecyclingApi.Web.Controllers
         /// 更新案例
         /// </summary>
         [HttpPut("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ApiResponse<CaseDto>> Update(int id, [FromBody] CreateUpdateCaseDto input)
         {
             if (!ModelState.IsValid)
@@ -81,7 +81,7 @@ namespace RecyclingApi.Web.Controllers
         /// 删除案例
         /// </summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ApiResponse<string>> Delete(int id)
         {
             var result = await _caseService.DeleteAsync(id);
@@ -95,7 +95,7 @@ namespace RecyclingApi.Web.Controllers
         /// 切换案例状态
         /// </summary>
         [HttpPatch("{id}/toggle-status")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ApiResponse<CaseDto>> ToggleStatus(int id)
         {
             try

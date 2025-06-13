@@ -156,17 +156,17 @@ public static class ContentSeedData
 
         var advantages = new List<CompanyAdvantage>
         {
-            new CompanyAdvantage { Title = "专业团队", Description = "拥有10年以上行业经验的专业团队", Icon = "team", Sort = 1, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "安全保障", Description = "严格的数据安全销毁流程和认证", Icon = "safety", Sort = 2, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "环保处理", Description = "符合国际标准的环保处理工艺", Icon = "eco", Sort = 3, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "全国服务", Description = "覆盖全国的服务网络和物流体系", Icon = "global", Sort = 4, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "资质认证", Description = "拥有完善的行业资质和认证", Icon = "certificate", Sort = 5, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "高效流程", Description = "标准化、流程化的高效服务体系", Icon = "process", Sort = 6, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "增值服务", Description = "提供IT资产管理等多项增值服务", Icon = "value", Sort = 7, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "技术创新", Description = "持续的技术创新和研发投入", Icon = "innovation", Sort = 8, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "合规运营", Description = "严格遵守国家法律法规和行业标准", Icon = "compliance", Sort = 9, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "价值最大化", Description = "帮助客户实现IT资产价值最大化", Icon = "maximize", Sort = 10, CreatedAt = DateTime.Now },
-            new CompanyAdvantage { Title = "定制方案", Description = "根据客户需求提供定制化解决方案", Icon = "customize", Sort = 11, CreatedAt = DateTime.Now }
+            new CompanyAdvantage { Title = "专业团队", Description = "拥有10年以上行业经验的专业团队", Icon = "team", Sort = 1, CreatedAt = DateTime.Now,CompanyInfoId=1 },
+            new CompanyAdvantage { Title = "安全保障", Description = "严格的数据安全销毁流程和认证", Icon = "safety", Sort = 2, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyAdvantage { Title = "环保处理", Description = "符合国际标准的环保处理工艺", Icon = "eco", Sort = 3, CreatedAt = DateTime.Now,CompanyInfoId=1 },
+            new CompanyAdvantage { Title = "全国服务", Description = "覆盖全国的服务网络和物流体系", Icon = "global", Sort = 4, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyAdvantage { Title = "资质认证", Description = "拥有完善的行业资质和认证", Icon = "certificate", Sort = 5, CreatedAt = DateTime.Now,CompanyInfoId=1 },
+            new CompanyAdvantage { Title = "高效流程", Description = "标准化、流程化的高效服务体系", Icon = "process", Sort = 6, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyAdvantage { Title = "增值服务", Description = "提供IT资产管理等多项增值服务", Icon = "value", Sort = 7, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyAdvantage { Title = "技术创新", Description = "持续的技术创新和研发投入", Icon = "innovation", Sort = 8, CreatedAt = DateTime.Now ,CompanyInfoId=1 },
+            new CompanyAdvantage { Title = "合规运营", Description = "严格遵守国家法律法规和行业标准", Icon = "compliance", Sort = 9, CreatedAt = DateTime.Now,CompanyInfoId=1 },
+            new CompanyAdvantage { Title = "价值最大化", Description = "帮助客户实现IT资产价值最大化", Icon = "maximize", Sort = 10, CreatedAt = DateTime.Now,CompanyInfoId=1 },
+            new CompanyAdvantage { Title = "定制方案", Description = "根据客户需求提供定制化解决方案", Icon = "customize", Sort = 11, CreatedAt = DateTime.Now,CompanyInfoId=1 }
         };
 
         context.CompanyAdvantages.AddRange(advantages);
@@ -186,17 +186,17 @@ public static class ContentSeedData
 
         var milestones = new List<CompanyMilestone>
         {
-            new CompanyMilestone { Year = "2010", Title = "公司成立", Description = "绿色循环环保科技有限公司在上海成立", Sort = 1, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2012", Title = "首个处理中心", Description = "建成上海浦东废弃物处理中心，年处理能力5万台", Sort = 2, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2014", Title = "技术突破", Description = "自主研发的数据安全擦除技术获得国家专利", Sort = 3, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2015", Title = "业务扩展", Description = "服务网络扩展至华东地区，建立10个服务中心", Sort = 4, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2016", Title = "获得认证", Description = "获得ISO9001、ISO14001、ISO27001三体系认证", Sort = 5, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2017", Title = "规模扩大", Description = "年处理设备量突破10万台，成为行业领先企业", Sort = 6, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2018", Title = "全国布局", Description = "服务网络覆盖全国，建立5个区域处理中心", Sort = 7, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2019", Title = "国际合作", Description = "与国际环保组织建立战略合作伙伴关系", Sort = 8, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2020", Title = "十周年", Description = "公司成立十周年，累计服务客户超过1000家", Sort = 9, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2021", Title = "科技创新", Description = "建立研发中心，加大技术创新投入", Sort = 10, CreatedAt = DateTime.Now },
-            new CompanyMilestone { Year = "2022", Title = "品牌升级", Description = "完成品牌升级，推出新的企业标识和服务理念", Sort = 11, CreatedAt = DateTime.Now }
+            new CompanyMilestone { Year = "2010", Title = "公司成立", Description = "绿色循环环保科技有限公司在上海成立", Sort = 1, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2012", Title = "首个处理中心", Description = "建成上海浦东废弃物处理中心，年处理能力5万台", Sort = 2, CreatedAt = DateTime.Now,CompanyInfoId=1 },
+            new CompanyMilestone { Year = "2014", Title = "技术突破", Description = "自主研发的数据安全擦除技术获得国家专利", Sort = 3, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2015", Title = "业务扩展", Description = "服务网络扩展至华东地区，建立10个服务中心", Sort = 4, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2016", Title = "获得认证", Description = "获得ISO9001、ISO14001、ISO27001三体系认证", Sort = 5, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2017", Title = "规模扩大", Description = "年处理设备量突破10万台，成为行业领先企业", Sort = 6, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2018", Title = "全国布局", Description = "服务网络覆盖全国，建立5个区域处理中心", Sort = 7, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2019", Title = "国际合作", Description = "与国际环保组织建立战略合作伙伴关系", Sort = 8, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2020", Title = "十周年", Description = "公司成立十周年，累计服务客户超过1000家", Sort = 9, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2021", Title = "科技创新", Description = "建立研发中心，加大技术创新投入", Sort = 10, CreatedAt = DateTime.Now ,CompanyInfoId=1},
+            new CompanyMilestone { Year = "2022", Title = "品牌升级", Description = "完成品牌升级，推出新的企业标识和服务理念", Sort = 11, CreatedAt = DateTime.Now ,CompanyInfoId=1}
         };
 
         context.CompanyMilestones.AddRange(milestones);

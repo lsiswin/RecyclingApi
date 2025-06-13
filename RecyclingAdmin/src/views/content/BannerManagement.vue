@@ -18,10 +18,16 @@
             <el-input v-model="queryParams.Keyword" placeholder="请输入标题关键词" clearable @clear="handleFilter" />
           </el-form-item>
           <el-form-item label="状态">
-            <el-select v-model="queryParams.IsActive" placeholder="请选择状态" clearable @change="handleFilter">
-              <el-option label="全部" :value="null" />
-              <el-option label="启用" :value="true" />
-              <el-option label="禁用" :value="false" />
+            <el-select 
+              v-model="queryParams.IsActive" 
+              placeholder="请选择" 
+              clearable 
+              @change="handleFilter"
+              style="width: 90px"
+            >
+              <el-option key="all" label="全部" :value="null" />
+              <el-option key="active" label="启用" :value="true" />
+              <el-option key="inactive" label="禁用" :value="false" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -32,8 +38,8 @@
       </div>
 
       <el-table :data="banners" style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="预览图" width="120">
+        <el-table-column align="center" prop="id" label="ID" width="80" />
+        <el-table-column label="预览图" align="center" width="120">
           <template #default="scope">
             <el-image
               :src="scope.row.imageUrl"
@@ -43,18 +49,18 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="title" label="标题" />
-        <el-table-column prop="description" label="描述" show-overflow-tooltip />
-        <el-table-column prop="linkUrl" label="链接地址" show-overflow-tooltip />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="title" label="标题" align="center"/>
+        <el-table-column prop="description" label="描述" show-overflow-tooltip align="center"/>
+        <el-table-column prop="linkUrl" label="链接地址" show-overflow-tooltip align="center"/>
+        <el-table-column label="状态" width="100" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.isActive ? 'success' : 'danger'">
               {{ scope.row.isActive ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="sort" label="排序" width="80" />
-        <el-table-column label="操作" width="200">
+        <el-table-column prop="sort" label="排序" width="80" align="center"/>
+        <el-table-column label="操作" width="200" align="center">
           <template #default="scope">
             <el-button size="small" @click="editBanner(scope.row)">编辑</el-button>
             <el-button

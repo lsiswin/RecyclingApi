@@ -1,9 +1,10 @@
 import request from '@/utils/request'
 
 export interface CategoryListQueryParams {
-  page: number
+  pageindex: number
   pageSize: number
-  keyword?: string
+  keyword: string
+  IsActive: boolean
 }
 
 export interface CategoryData {

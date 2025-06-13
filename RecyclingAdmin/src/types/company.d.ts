@@ -25,7 +25,7 @@ declare module '@/api/company' {
     certifications: string[]
   }
 
-  export function getCompanyProfile(): Promise<ApiResponse<CompanyProfileData>>
+  export function getCompanyProfile()
   export function updateCompanyProfile(data: CompanyProfileData): Promise<ApiResponse<any>>
   
   export function getTeamMemberTypes(): Promise<ApiResponse<any>>

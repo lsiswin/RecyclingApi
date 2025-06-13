@@ -4,7 +4,7 @@ export interface BannerListQueryParams {
   pageindex: number
   pageSize: number
   Keyword: string
-  IsActive: boolean
+  IsActive: boolean | null
 }
 
 export interface BannerData {

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using RecyclingApi.Application.Common.Responses;
 using RecyclingApi.Application.DTOs;
 using RecyclingApi.Application.DTOs.ProductDTOs;
-using RecyclingApi.Application.Services.Product;
+using RecyclingApi.Application.Services.Products;
 using RecyclingApi.Domain.Enums;
 
 namespace RecyclingApi.Web.Controllers
@@ -24,10 +24,10 @@ namespace RecyclingApi.Web.Controllers
         /// 获取产品分页列表
         /// </summary>
         [HttpGet]
-        public async Task<ApiResponse<PagedResult<ProductDto>>> GetList([FromQuery] ProductRequestDto requestDto)
+        public async Task<ApiResponse<PagedResponseDto<ProductDto>>> GetList([FromQuery] ProductRequestDto requestDto)
         {
             var result = await _productService.GetPagedListAsync(requestDto);
-            return new ApiResponse<PagedResult<ProductDto>>(result);
+            return new ApiResponse<PagedResponseDto<ProductDto>>(result);
         }
 
         /// <summary>

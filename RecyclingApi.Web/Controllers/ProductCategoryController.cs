@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RecyclingApi.Application.Common.Responses;
@@ -92,7 +90,7 @@ namespace RecyclingApi.Web.Controllers
         /// 删除产品分类
         /// </summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ApiResponse<string>> Delete(int id)
         {
             var result = await _productCategoryService.DeleteAsync(id);
@@ -106,7 +104,7 @@ namespace RecyclingApi.Web.Controllers
         /// 切换产品分类状态
         /// </summary>
         [HttpPatch("{id}/toggle-status")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ApiResponse<ProductCategoryDto>> ToggleStatus(int id)
         {
             try

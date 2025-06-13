@@ -366,8 +366,9 @@ const currentCertUrl = ref('')
 onMounted(async () => {
   try {
     const response = await getCompanyProfile()
-    if (response.data) {
-      const data = response.data
+    if (response.data.data) {
+      const data = response.data.data
+      console.log(data);      
       companyForm.name = data.name
       companyForm.logoUrl = data.logoUrl
       companyForm.coverImageUrl = data.coverImageUrl

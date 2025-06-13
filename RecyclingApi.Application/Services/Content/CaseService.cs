@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using RecyclingApi.Application.DTOs;
 using RecyclingApi.Application.DTOs.CaseDTOs;
+using RecyclingApi.Application.Repositories;
 using RecyclingApi.Domain.Entities.Content;
-using RecyclingApi.Domain.Entities.Data;
-using AutoMapper;
 
 namespace RecyclingApi.Application.Services.Content
 {
@@ -15,15 +16,15 @@ namespace RecyclingApi.Application.Services.Content
     /// </summary>
     public class CaseService : ICaseService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         /// <summary>
         /// 构造函数
         /// </summary>
-        public CaseService(ApplicationDbContext context, IMapper mapper)
+        public CaseService(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -32,47 +33,45 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<PagedResponseDto<CaseDto>> GetPagedListAsync(CaseRequestDto requestDto)
         {
-            var query = _context.Cases.AsQueryable();
+            var repository = _unitOfWork.GetRepository<Case>();
+            
+            // 构建默认表达式，始终为true
+            Expression<Func<Case, bool>> predicate = c => true;
 
             // 应用筛选条件
             if (!string.IsNullOrEmpty(requestDto.Keyword))
             {
-                query = query.Where(c => c.Title.Contains(requestDto.Keyword));
+                predicate = CombineExpressions(predicate, c => c.Title.Contains(requestDto.Keyword));
             }
 
             if (!string.IsNullOrEmpty(requestDto.Category))
             {
-                query = query.Where(c => c.Category == requestDto.Category);
+                predicate = CombineExpressions(predicate, c => c.Category == requestDto.Category);
             }
 
             if (requestDto.IsActive.HasValue)
             {
-                query = query.Where(c => c.IsActive == requestDto.IsActive.Value);
+                predicate = CombineExpressions(predicate, c => c.IsActive == requestDto.IsActive.Value);
             }
 
-            // 应用排序
-            query = requestDto.IsDesc == true
-                ? query.OrderByDescending(c => c.Sort).ThenByDescending(c => c.CreatedAt)
-                : query.OrderBy(c => c.Sort).ThenByDescending(c => c.CreatedAt);
-
-            // 计算总数
-            var totalCount = await query.CountAsync();
-
-            // 应用分页
-            var items = await query
-                .Skip((requestDto.PageIndex - 1) * requestDto.PageSize)
-                .Take(requestDto.PageSize)
-                .ToListAsync();
+            // 确定排序字段
+            Expression<Func<Case, object>> orderBy = c => c.Sort;
+            var result = await repository.GetPagedListAsync(
+                requestDto.PageIndex,
+                requestDto.PageSize,
+                predicate,
+                orderBy,
+                requestDto.IsDesc);
 
             // 映射结果
-            var dtos = _mapper.Map<List<CaseDto>>(items);
+            var dtos = _mapper.Map<List<CaseDto>>(result.Items);
 
             return new PagedResponseDto<CaseDto>
             {
                 Items = dtos,
-                TotalCount = totalCount,
-                PageIndex = requestDto.PageIndex,
-                PageSize = requestDto.PageSize
+                TotalCount = result.TotalCount,
+                PageIndex = result.PageIndex,
+                PageSize = result.PageSize
             };
         }
 
@@ -81,9 +80,11 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CaseDto> GetByIdAsync(int id)
         {
-            var entity = await _context.Cases.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<Case>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
-                return null;
+                throw new Exception($"未找到ID为{id}的案例");
 
             return _mapper.Map<CaseDto>(entity);
         }
@@ -93,11 +94,12 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CaseDto> CreateAsync(CreateUpdateCaseDto input)
         {
+            var repository = _unitOfWork.GetRepository<Case>();
             var entity = _mapper.Map<Case>(input);
             entity.CreatedAt = DateTime.Now;
 
-            _context.Cases.Add(entity);
-            await _context.SaveChangesAsync();
+            repository.Add(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<CaseDto>(entity);
         }
@@ -107,15 +109,17 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CaseDto> UpdateAsync(int id, CreateUpdateCaseDto input)
         {
-            var entity = await _context.Cases.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<Case>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 throw new Exception($"未找到ID为{id}的案例");
 
             _mapper.Map(input, entity);
             entity.UpdatedAt = DateTime.Now;
 
-            _context.Cases.Update(entity);
-            await _context.SaveChangesAsync();
+            repository.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<CaseDto>(entity);
         }
@@ -125,12 +129,14 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _context.Cases.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<Case>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 return false;
 
-            _context.Cases.Remove(entity);
-            await _context.SaveChangesAsync();
+            repository.Delete(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
@@ -140,15 +146,17 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<CaseDto> ToggleStatusAsync(int id)
         {
-            var entity = await _context.Cases.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<Case>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 throw new Exception($"未找到ID为{id}的案例");
 
             entity.IsActive = !entity.IsActive;
             entity.UpdatedAt = DateTime.Now;
 
-            _context.Cases.Update(entity);
-            await _context.SaveChangesAsync();
+            repository.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<CaseDto>(entity);
         }
@@ -158,17 +166,57 @@ namespace RecyclingApi.Application.Services.Content
         /// </summary>
         public async Task<int> IncrementViewsAsync(int id)
         {
-            var entity = await _context.Cases.FindAsync(id);
+            var repository = _unitOfWork.GetRepository<Case>();
+            var entity = await repository.GetByIdAsync(id);
+            
             if (entity == null)
                 throw new Exception($"未找到ID为{id}的案例");
 
             entity.Views += 1;
             entity.UpdatedAt = DateTime.Now;
 
-            _context.Cases.Update(entity);
-            await _context.SaveChangesAsync();
+            repository.Update(entity);
+            await _unitOfWork.SaveChangesAsync();
 
             return entity.Views;
         }
+
+        /// <summary>
+        /// 合并两个表达式树
+        /// </summary>
+        private static Expression<Func<T, bool>> CombineExpressions<T>(
+            Expression<Func<T, bool>> expr1,
+            Expression<Func<T, bool>> expr2)
+        {
+            var parameter = Expression.Parameter(typeof(T));
+
+            var leftVisitor = new ReplaceExpressionVisitor(expr1.Parameters[0], parameter);
+            var left = leftVisitor.Visit(expr1.Body);
+
+            var rightVisitor = new ReplaceExpressionVisitor(expr2.Parameters[0], parameter);
+            var right = rightVisitor.Visit(expr2.Body);
+
+            return Expression.Lambda<Func<T, bool>>(
+                Expression.AndAlso(left!, right!), parameter);
+        }
+
+        private class ReplaceExpressionVisitor : ExpressionVisitor
+        {
+            private readonly Expression _oldValue;
+            private readonly Expression _newValue;
+
+            public ReplaceExpressionVisitor(Expression oldValue, Expression newValue)
+            {
+                _oldValue = oldValue;
+                _newValue = newValue;
+            }
+
+            public override Expression? Visit(Expression? node)
+            {
+                if (node == _oldValue)
+                    return _newValue;
+                return base.Visit(node);
+            }
+        }
     }
-} 
+}
